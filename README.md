@@ -1,1 +1,1 @@
-# BoxerJS
+# boxer.js
