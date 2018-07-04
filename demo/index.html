@@ -38,6 +38,11 @@
             debug: true
         });
 
+        boxer1.on('imageLoaded', function (e, ) {
+            boxes = [{x: 20,y: 20, w: 10, h: 10 }, {x:30,y:50,w:20,h:100}];
+            boxer1.LoadBoxes(boxes);
+        });
+
         boxer1.LoadImage('https://image.ibb.co/ncW9H8/test.jpg');
 
         var canvas2 = document.getElementById('boxer2');
@@ -47,7 +52,7 @@
             debug: true
         });
 
-        boxer2.LoadImage('https://placekitten.com/g/2000/3000');
+        boxer2.LoadImage('https://s22.postimg.cc/k6qk80jk1/Invoice-00984-_Clean-page-001.jpg');
     </script>
 </body>
 

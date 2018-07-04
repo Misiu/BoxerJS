@@ -1,3 +1,56 @@
+class EventEmitter {
+    private _e: any;
+
+    public on(event: string, callback: Function, ctx?: any) {
+        var e = this._e || (this._e = {});
+
+        (e[event] || (e[event] = [])).push({
+            fn: callback,
+            ctx: ctx
+        });
+
+        return this;
+    }
+    public off(event: string, callback: Function) {
+        var e = this._e || (this._e = {});
+        var evts = e[event];
+        var liveEvents = [];
+
+        if (evts && callback) {
+            for (var i = 0, len = evts.length; i < len; i++) {
+                if (evts[i].fn !== callback && evts[i].fn._ !== callback) {
+                    liveEvents.push(evts[i]);
+                }
+            }
+        }
+
+        // Remove event from queue to prevent memory leak
+        // Suggested by https://github.com/lazd
+        // Ref: https://github.com/scottcorgan/tiny-emitter/commit/c6ebfaa9bc973b33d110a84a307742b7cf94c953#commitcomment-5024910
+
+        (liveEvents.length)
+            ? e[name] = liveEvents
+            : delete e[name];
+
+        return this;
+    }
+
+    public emit(event: string, ...args: any[]) {
+        var data = [].slice.call(args, 1);
+        var evtArr = ((this._e || (this._e = {}))[event] || []).slice();
+        var i = 0;
+        var len = evtArr.length;
+
+        for (i; i < len; i++) {
+            evtArr[i].fn.apply(evtArr[i].ctx, data);
+        }
+
+        return this;
+    }
+}
+
+
+
 type Point = {
     x: number,
     y: number
@@ -43,7 +96,7 @@ class Box {
 
 }
 
-class Boxer implements IBoxer {
+class Boxer extends EventEmitter implements IBoxer {
     //canvas
     private _canvas: HTMLCanvasElement;
     private _context: CanvasRenderingContext2D;
@@ -66,6 +119,8 @@ class Boxer implements IBoxer {
 
     constructor(canvas: HTMLCanvasElement, options: iBoxerOptions | null) {
 
+        super();
+
         if (!(canvas instanceof HTMLCanvasElement)) throw new Error('You must pass Canvas as first argument!');
         this._canvas = canvas;
         var ctx = this._canvas.getContext('2d');
@@ -74,8 +129,6 @@ class Boxer implements IBoxer {
 
         this._canvasW = this._canvas.width;
         this._canvasH = this._canvas.height;
-
-
 
         this._options = {
             responsive: false,
@@ -150,6 +203,12 @@ class Boxer implements IBoxer {
             return false;
         }, true);
 
+        this._canvas.addEventListener('keydown', (event) => {
+            if (event.keyCode === 46/*Del*/ && this._selectedBox !== undefined && !this._dragging) {
+                this.RemoveSelectedBox();
+            }
+        }, true);
+
         this._canvas.addEventListener('dblclick', (event) => {
             var pos = this.GetMousePosition(event);
             this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
@@ -180,6 +239,16 @@ class Boxer implements IBoxer {
 
     public AddBox(box: Box) {
         this._boxes.push(box);
+        this._needRepaint = true;
+    }
+
+    public RemoveSelectedBox(): void {
+        if (this._selectedBox === undefined) return;
+        var index = this._boxes.indexOf(this._selectedBox);
+        if (index > -1) {
+            this._boxes.splice(index, 1);
+        }
+        this._selectedBox = undefined;
         this._needRepaint = true;
     }
 
@@ -384,6 +453,7 @@ class Boxer implements IBoxer {
             console.log('sto');
             this._imageLoading = false;
             this._needRepaint = true;
+            this.emit('imageLoaded');
         }
 
         xmlHttpRequest.onerror = (e) => {
@@ -406,5 +476,12 @@ class Boxer implements IBoxer {
                 this._needRepaint = true;
                 this._image.src = url;
                 */
+    }
+
+    LoadBoxes(boxes: Box[]): void {
+        console.log(boxes);
+        for (let box of boxes) {
+            this.AddBox(new Box(box.x, box.y, box.w, box.h, 'rgba(0,255,0,.6)'));
+        }
     }
 }

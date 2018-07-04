@@ -1,4 +1,14 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -7,6 +17,52 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     }
     return t;
 };
+var EventEmitter = /** @class */ (function () {
+    function EventEmitter() {
+    }
+    EventEmitter.prototype.on = function (event, callback, ctx) {
+        var e = this._e || (this._e = {});
+        (e[event] || (e[event] = [])).push({
+            fn: callback,
+            ctx: ctx
+        });
+        return this;
+    };
+    EventEmitter.prototype.off = function (event, callback) {
+        var e = this._e || (this._e = {});
+        var evts = e[event];
+        var liveEvents = [];
+        if (evts && callback) {
+            for (var i = 0, len = evts.length; i < len; i++) {
+                if (evts[i].fn !== callback && evts[i].fn._ !== callback) {
+                    liveEvents.push(evts[i]);
+                }
+            }
+        }
+        // Remove event from queue to prevent memory leak
+        // Suggested by https://github.com/lazd
+        // Ref: https://github.com/scottcorgan/tiny-emitter/commit/c6ebfaa9bc973b33d110a84a307742b7cf94c953#commitcomment-5024910
+        (liveEvents.length)
+            ? e[name] = liveEvents
+            : delete e[name];
+        return this;
+    };
+    EventEmitter.prototype.emit = function (event) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var data = [].slice.call(args, 1);
+        var evtArr = ((this._e || (this._e = {}))[event] || []).slice();
+        var i = 0;
+        var len = evtArr.length;
+        for (i; i < len; i++) {
+            evtArr[i].fn.apply(evtArr[i].ctx, data);
+        }
+        return this;
+    };
+    return EventEmitter;
+}());
 var Box = /** @class */ (function () {
     function Box(x, y, w, h, fill) {
         this.x = x;
@@ -26,23 +82,24 @@ var Box = /** @class */ (function () {
     };
     return Box;
 }());
-var Boxer = /** @class */ (function () {
+var Boxer = /** @class */ (function (_super) {
+    __extends(Boxer, _super);
     function Boxer(canvas, options) {
-        var _this = this;
-        this._canvasW = 0;
-        this._canvasH = 0;
-        this._originalImageW = 0;
-        this._originalImageH = 0;
-        this._imgX = 0;
-        this._imgY = 0;
-        this._imgW = 0;
-        this._imgH = 0;
-        this._needRepaint = false;
-        this._dragging = false;
-        this._dragoffx = 0;
-        this._dragoffy = 0;
-        this._boxes = new Array();
-        this.Render = function () {
+        var _this = _super.call(this) || this;
+        _this._canvasW = 0;
+        _this._canvasH = 0;
+        _this._originalImageW = 0;
+        _this._originalImageH = 0;
+        _this._imgX = 0;
+        _this._imgY = 0;
+        _this._imgW = 0;
+        _this._imgH = 0;
+        _this._needRepaint = false;
+        _this._dragging = false;
+        _this._dragoffx = 0;
+        _this._dragoffy = 0;
+        _this._boxes = new Array();
+        _this.Render = function () {
             if (_this._context === null)
                 return;
             if (!_this._needRepaint) {
@@ -74,7 +131,7 @@ var Boxer = /** @class */ (function () {
             _this._needRepaint = false;
             requestAnimationFrame(_this.Render);
         };
-        this.HandleResize = function () {
+        _this.HandleResize = function () {
             if (_this._canvas.parentElement !== null) {
                 var w = _this._canvas.parentElement.clientWidth; //window.innerWidth;
                 var h = _this._canvas.parentElement.clientHeight; //window.innerHeight;
@@ -85,7 +142,7 @@ var Boxer = /** @class */ (function () {
                 _this._needRepaint = true;
             }
         };
-        this.DrawBackground = function () {
+        _this.DrawBackground = function () {
             //console.log(this._canvasW, this._canvasH);
             var patternCanvas = document.createElement('canvas');
             patternCanvas.width = 20;
@@ -101,27 +158,28 @@ var Boxer = /** @class */ (function () {
                 _this._context.fill();
             }
         };
-        this._drawImage = false;
-        this._imageLoading = false;
-        this._imageLoadingProgress = 0;
+        _this._drawImage = false;
+        _this._imageLoading = false;
+        _this._imageLoadingProgress = 0;
         if (!(canvas instanceof HTMLCanvasElement))
             throw new Error('You must pass Canvas as first argument!');
-        this._canvas = canvas;
-        var ctx = this._canvas.getContext('2d');
+        _this._canvas = canvas;
+        var ctx = _this._canvas.getContext('2d');
         if (ctx === null)
             throw new Error('Unable to get context from Canvas.');
-        this._context = ctx;
-        this._canvasW = this._canvas.width;
-        this._canvasH = this._canvas.height;
-        this._options = {
+        _this._context = ctx;
+        _this._canvasW = _this._canvas.width;
+        _this._canvasH = _this._canvas.height;
+        _this._options = {
             responsive: false,
             debug: false,
             readonly: false
         };
-        this._options = __assign({}, this._options, options);
-        this.SetupCanvasAttributes();
-        this.AttachEventHandlers();
-        this.Render();
+        _this._options = __assign({}, _this._options, options);
+        _this.SetupCanvasAttributes();
+        _this.AttachEventHandlers();
+        _this.Render();
+        return _this;
     }
     Boxer.prototype.SetupCanvasAttributes = function () {
         if (!this._canvas.hasAttribute('tabindex')) {
@@ -173,6 +231,11 @@ var Boxer = /** @class */ (function () {
             event.preventDefault();
             return false;
         }, true);
+        this._canvas.addEventListener('keydown', function (event) {
+            if (event.keyCode === 46 /*Del*/ && _this._selectedBox !== undefined && !_this._dragging) {
+                _this.RemoveSelectedBox();
+            }
+        }, true);
         this._canvas.addEventListener('dblclick', function (event) {
             var pos = _this.GetMousePosition(event);
             _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
@@ -196,6 +259,16 @@ var Boxer = /** @class */ (function () {
     };
     Boxer.prototype.AddBox = function (box) {
         this._boxes.push(box);
+        this._needRepaint = true;
+    };
+    Boxer.prototype.RemoveSelectedBox = function () {
+        if (this._selectedBox === undefined)
+            return;
+        var index = this._boxes.indexOf(this._selectedBox);
+        if (index > -1) {
+            this._boxes.splice(index, 1);
+        }
+        this._selectedBox = undefined;
         this._needRepaint = true;
     };
     Boxer.prototype.DrawBoxes = function () {
@@ -300,6 +373,7 @@ var Boxer = /** @class */ (function () {
             console.log('sto');
             _this._imageLoading = false;
             _this._needRepaint = true;
+            _this.emit('imageLoaded');
         };
         xmlHttpRequest.onerror = function (e) {
             console.log(e);
@@ -319,5 +393,12 @@ var Boxer = /** @class */ (function () {
                 this._image.src = url;
                 */
     };
+    Boxer.prototype.LoadBoxes = function (boxes) {
+        console.log(boxes);
+        for (var _i = 0, boxes_1 = boxes; _i < boxes_1.length; _i++) {
+            var box = boxes_1[_i];
+            this.AddBox(new Box(box.x, box.y, box.w, box.h, 'rgba(0,255,0,.6)'));
+        }
+    };
     return Boxer;
-}());
+}(EventEmitter));
