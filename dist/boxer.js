@@ -113,10 +113,15 @@ var Boxer = /** @class */ (function () {
         this._drawImage = false;
         this._imageLoading = false;
         this._imageLoadingProgress = 0;
+        if (!(canvas instanceof HTMLCanvasElement))
+            throw new Error('You must pass Canvas as first argument!');
         this._canvas = canvas;
+        var ctx = this._canvas.getContext('2d');
+        if (ctx === null)
+            throw new Error('Unable to get context from Canvas.');
+        this._context = ctx;
         this._canvasW = this._canvas.width;
         this._canvasH = this._canvas.height;
-        this._context = this._canvas.getContext('2d');
         this._options = {
             responsive: false,
             debug: false,
@@ -125,10 +130,6 @@ var Boxer = /** @class */ (function () {
         this._options = __assign({}, this._options, options);
         this.SetupCanvasAttributes();
         this.AttachEventHandlers();
-        if (this._options.responsive) {
-            window.addEventListener("resize", this.HandleResize);
-            this.HandleResize();
-        }
         this.Render();
     }
     Boxer.prototype.SetupCanvasAttributes = function () {
@@ -165,12 +166,16 @@ var Boxer = /** @class */ (function () {
             //event.preventDefault();
             return false;
         }, false);
+        if (this._options.responsive) {
+            window.addEventListener("resize", this.HandleResize);
+            this.HandleResize();
+        }
     };
-    Boxer.prototype.getMousePos = function (evt) {
+    Boxer.prototype.getMousePos = function (event) {
         var rect = this._canvas.getBoundingClientRect();
         return {
-            x: evt.clientX - rect.left,
-            y: evt.clientY - rect.top
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
         };
     };
     Boxer.prototype.AddBox = function (box) {

@@ -1,3 +1,8 @@
+type Point = {
+    x: number,
+    y: number
+}
+
 interface iBoxerOptions {
     responsive: boolean,
     debug: boolean,
@@ -13,8 +18,8 @@ class Box {
     private _y: number;
     private _w: number;
     private _h: number;
-
     private _fill: string;
+
     constructor(x: number, y: number, w: number, h: number, fill: string) {
         this._x = x;
         this._y = y;
@@ -24,8 +29,8 @@ class Box {
         this._fill = fill;
     }
 
-    Paint(ctx: CanvasRenderingContext2D | null): void {
-        if(ctx===null) return;
+    Paint(ctx: CanvasRenderingContext2D): void {
+        if (ctx === null) return;
 
         ctx.fillStyle = this._fill;
         ctx.fillRect(this._x, this._y, this._w, this._h);
@@ -35,7 +40,7 @@ class Box {
 class Boxer implements IBoxer {
     //canvas
     private _canvas: HTMLCanvasElement;
-    private _context: CanvasRenderingContext2D | null;
+    private _context: CanvasRenderingContext2D;
 
     private _canvasW: number = 0;
     private _canvasH: number = 0;
@@ -53,13 +58,18 @@ class Boxer implements IBoxer {
 
     private _needRepaint: boolean = false;
 
-    constructor(canvas: HTMLCanvasElement, options?: iBoxerOptions) {
+    constructor(canvas: HTMLCanvasElement, options: iBoxerOptions | null) {
 
+        if (!(canvas instanceof HTMLCanvasElement)) throw new Error('You must pass Canvas as first argument!');
         this._canvas = canvas;
+        var ctx = this._canvas.getContext('2d');
+        if (ctx === null) throw new Error('Unable to get context from Canvas.');
+        this._context = ctx;
+
         this._canvasW = this._canvas.width;
         this._canvasH = this._canvas.height;
-
-        this._context = this._canvas.getContext('2d');
+        
+        
 
         this._options = {
             responsive: false,
@@ -70,12 +80,6 @@ class Boxer implements IBoxer {
 
         this.SetupCanvasAttributes();
         this.AttachEventHandlers();
-
-        if (this._options.responsive) {
-            window.addEventListener("resize", this.HandleResize);
-            this.HandleResize();
-        }
-
         this.Render();
     }
 
@@ -93,8 +97,8 @@ class Boxer implements IBoxer {
 
         this._canvas.addEventListener('dblclick', (event) => {
             //console.log('dblclick', event);
-var pos = this.getMousePos(event);
-            this.AddBox(new Box(pos.x-10, pos.y-10, 20, 20, 'rgba(0,255,0,.6)'));
+            var pos = this.getMousePos(event);
+            this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
         }, true);
 
         this._canvas.addEventListener('mousemove', (event) => {
@@ -119,13 +123,19 @@ var pos = this.getMousePos(event);
             //event.preventDefault();
             return false;
         }, false);
+
+        if (this._options.responsive) {
+            window.addEventListener("resize", this.HandleResize);
+            this.HandleResize();
+        }
     }
 
-    getMousePos(evt:MouseEvent):any {
+    getMousePos(event: MouseEvent): Point {
         var rect = this._canvas.getBoundingClientRect();
+
         return {
-          x: evt.clientX - rect.left,
-          y: evt.clientY - rect.top
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
         };
     }
 
