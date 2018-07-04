@@ -14,21 +14,12 @@ interface IBoxer {
 }
 
 class Box {
-<<<<<<< HEAD
-    private _x: number;
-    private _y: number;
-    private _w: number;
-    private _h: number;
-    private _fill: string;
-
-=======
     public x: number;
     public y: number;
     public w: number;
     public h: number;
 
     public _fill: string;
->>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
     constructor(x: number, y: number, w: number, h: number, fill: string) {
         this.x = x;
         this.y = y;
@@ -38,15 +29,11 @@ class Box {
         this._fill = fill;
     }
 
-<<<<<<< HEAD
-    Paint(ctx: CanvasRenderingContext2D): void {
-=======
     Contains(x: number, y: number): boolean {
         return (this.x <= x) && (this.x + this.w >= x) && (this.y <= y) && (this.y + this.h >= y);
     }
 
     Paint(ctx: CanvasRenderingContext2D | null): void {
->>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         if (ctx === null) return;
 
         ctx.fillStyle = this._fill;
@@ -129,18 +116,11 @@ class Boxer implements IBoxer {
                 }
             }
 
-<<<<<<< HEAD
-        this._canvas.addEventListener('dblclick', (event) => {
-            //console.log('dblclick', event);
-            var pos = this.getMousePos(event);
-            this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
-=======
             //remove selection
             if (this._selectedBox !== undefined) {
                 this._selectedBox = undefined;
                 this._needRepaint = true;
             }
->>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         }, true);
 
         this._canvas.addEventListener('mousemove', (event) => {
@@ -186,21 +166,12 @@ class Boxer implements IBoxer {
         }
     }
 
-<<<<<<< HEAD
-    getMousePos(event: MouseEvent): Point {
-=======
-    GetMousePosition(evt: MouseEvent): Point {
->>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
+    GetMousePosition(event: MouseEvent): Point {
         var rect = this._canvas.getBoundingClientRect();
 
         return {
-<<<<<<< HEAD
             x: event.clientX - rect.left,
             y: event.clientY - rect.top
-=======
-            x: evt.clientX - rect.left,
-            y: evt.clientY - rect.top
->>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         };
     }
 
@@ -419,7 +390,7 @@ class Boxer implements IBoxer {
         }
 
         xmlHttpRequest.send();
-        //this._imageLoading = true;
+        this._imageLoading = true;
         this._imageLoadingProgress = 0;
 
 

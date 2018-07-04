@@ -15,6 +15,9 @@ var Box = /** @class */ (function () {
         this.h = h;
         this._fill = fill;
     }
+    Box.prototype.Contains = function (x, y) {
+        return (this.x <= x) && (this.x + this.w >= x) && (this.y <= y) && (this.y + this.h >= y);
+    };
     Box.prototype.Paint = function (ctx) {
         if (ctx === null)
             return;
@@ -38,6 +41,7 @@ var Boxer = /** @class */ (function () {
         this._dragging = false;
         this._dragoffx = 0;
         this._dragoffy = 0;
+        this._boxes = new Array();
         this.Render = function () {
             if (_this._context === null)
                 return;
@@ -140,53 +144,54 @@ var Boxer = /** @class */ (function () {
                     return;
                 }
             }
-            _this._canvas.addEventListener('dblclick', function (event) {
-                //console.log('dblclick', event);
-                var pos = _this.getMousePos(event);
-                _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
-            }, true);
-            _this._canvas.addEventListener('mousemove', function (event) {
-                if (_this._dragging && _this._selectedBox !== undefined) {
-                    var position = _this.GetMousePosition(event);
-                    // We don't want to drag the object by its top-left corner, we want to drag it
-                    // from where we clicked. Thats why we saved the offset and use it here
-                    _this._selectedBox.x = position.x - _this._dragoffx;
-                    _this._selectedBox.y = position.y - _this._dragoffy;
-                    _this._needRepaint = true;
-                }
-            }, true);
-            _this._canvas.addEventListener('mouseup', function (event) {
-                _this._dragging = false;
-            }, true);
-            _this._canvas.addEventListener('mouseleave', function (event) {
-                _this._dragging = false;
-                //this._selectedBox=undefined;
+            //remove selection
+            if (_this._selectedBox !== undefined) {
+                _this._selectedBox = undefined;
                 _this._needRepaint = true;
-            }, true);
-            _this._canvas.addEventListener('mousewheel', function (event) {
-                //console.log(event);
-                event.preventDefault();
-                return false;
-            }, true);
-            _this._canvas.addEventListener('dblclick', function (event) {
-                var pos = _this.GetMousePosition(event);
-                _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
-            }, true);
-            _this._canvas.addEventListener('selectstart', function (event) {
-                //event.preventDefault();
-                return false;
-            }, false);
-            if (_this._options.responsive) {
-                window.addEventListener("resize", _this.HandleResize);
-                _this.HandleResize();
             }
-        }, getMousePos(event, MouseEvent), Point, {
-            var: rect = this._canvas.getBoundingClientRect(),
-            return: {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top
+        }, true);
+        this._canvas.addEventListener('mousemove', function (event) {
+            if (_this._dragging && _this._selectedBox !== undefined) {
+                var position = _this.GetMousePosition(event);
+                // We don't want to drag the object by its top-left corner, we want to drag it
+                // from where we clicked. Thats why we saved the offset and use it here
+                _this._selectedBox.x = position.x - _this._dragoffx;
+                _this._selectedBox.y = position.y - _this._dragoffy;
+                _this._needRepaint = true;
             }
-        }, private, _boxes, Array < Box > , new Array());
+        }, true);
+        this._canvas.addEventListener('mouseup', function (event) {
+            _this._dragging = false;
+        }, true);
+        this._canvas.addEventListener('mouseleave', function (event) {
+            _this._dragging = false;
+            //this._selectedBox=undefined;
+            _this._needRepaint = true;
+        }, true);
+        this._canvas.addEventListener('mousewheel', function (event) {
+            //console.log(event);
+            event.preventDefault();
+            return false;
+        }, true);
+        this._canvas.addEventListener('dblclick', function (event) {
+            var pos = _this.GetMousePosition(event);
+            _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
+        }, true);
+        this._canvas.addEventListener('selectstart', function (event) {
+            //event.preventDefault();
+            return false;
+        }, false);
+        if (this._options.responsive) {
+            window.addEventListener("resize", this.HandleResize);
+            this.HandleResize();
+        }
+    };
+    Boxer.prototype.GetMousePosition = function (event) {
+        var rect = this._canvas.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
     };
     Boxer.prototype.AddBox = function (box) {
         this._boxes.push(box);
@@ -298,7 +303,7 @@ var Boxer = /** @class */ (function () {
             console.log(e);
         };
         xmlHttpRequest.send();
-        //this._imageLoading = true;
+        this._imageLoading = true;
         this._imageLoadingProgress = 0;
         /*
                 this._image = new Image();
