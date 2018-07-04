@@ -74,8 +74,8 @@ class Boxer implements IBoxer {
 
         this._canvasW = this._canvas.width;
         this._canvasH = this._canvas.height;
-        
-        
+
+
 
         this._options = {
             responsive: false,
@@ -97,10 +97,10 @@ class Boxer implements IBoxer {
     }
 
     private _selectedBox: Box | undefined;
-    private _dragging:boolean = false;
+    private _dragging: boolean = false;
 
-    private _dragoffx:number=0;
-    private _dragoffy:number=0;
+    private _dragoffx: number = 0;
+    private _dragoffy: number = 0;
 
     AttachEventHandlers(): void {
         this._canvas.addEventListener('mousedown', (event) => {
@@ -108,8 +108,8 @@ class Boxer implements IBoxer {
             for (let box of this._boxes) {
                 if (box.Contains(pos.x, pos.y)) {
                     this._selectedBox = box;
-                    this._dragoffx=pos.x-this._selectedBox.x;
-                    this._dragoffy=pos.y-this._selectedBox.y;
+                    this._dragoffx = pos.x - this._selectedBox.x;
+                    this._dragoffy = pos.y - this._selectedBox.y;
                     this._dragging = true;
                     this._needRepaint = true;
                     return;
@@ -124,14 +124,14 @@ class Boxer implements IBoxer {
         }, true);
 
         this._canvas.addEventListener('mousemove', (event) => {
-            if (this._dragging && this._selectedBox !==undefined){
-                var position =this.GetMousePosition(event);
+            if (this._dragging && this._selectedBox !== undefined) {
+                var position = this.GetMousePosition(event);
                 // We don't want to drag the object by its top-left corner, we want to drag it
                 // from where we clicked. Thats why we saved the offset and use it here
                 this._selectedBox.x = position.x - this._dragoffx;
-                this._selectedBox.y = position.y - this._dragoffy;   
+                this._selectedBox.y = position.y - this._dragoffy;
                 this._needRepaint = true;
-              }
+            }
         }, true);
 
         this._canvas.addEventListener('mouseup', (event) => {
@@ -166,6 +166,7 @@ class Boxer implements IBoxer {
         }
     }
 
+    //https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
     GetMousePosition(event: MouseEvent): Point {
         var rect = this._canvas.getBoundingClientRect();
 
@@ -340,7 +341,7 @@ class Boxer implements IBoxer {
 
         this._image = new Image();
 
-
+        //https://stackoverflow.com/questions/14218607/javascript-loading-progress-of-an-image
         var xmlHttpRequest: XMLHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('GET', url, true);
         xmlHttpRequest.responseType = 'arraybuffer';

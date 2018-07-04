@@ -186,6 +186,7 @@ var Boxer = /** @class */ (function () {
             this.HandleResize();
         }
     };
+    //https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
     Boxer.prototype.GetMousePosition = function (event) {
         var rect = this._canvas.getBoundingClientRect();
         return {
@@ -263,6 +264,7 @@ var Boxer = /** @class */ (function () {
     Boxer.prototype.LoadImage = function (url) {
         var _this = this;
         this._image = new Image();
+        //https://stackoverflow.com/questions/14218607/javascript-loading-progress-of-an-image
         var xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('GET', url, true);
         xmlHttpRequest.responseType = 'arraybuffer';
