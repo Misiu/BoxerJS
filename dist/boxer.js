@@ -9,17 +9,17 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
 };
 var Box = /** @class */ (function () {
     function Box(x, y, w, h, fill) {
-        this._x = x;
-        this._y = y;
-        this._w = w;
-        this._h = h;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
         this._fill = fill;
     }
     Box.prototype.Paint = function (ctx) {
         if (ctx === null)
             return;
         ctx.fillStyle = this._fill;
-        ctx.fillRect(this._x, this._y, this._w, this._h);
+        ctx.fillRect(this.x, this.y, this.w, this.h);
     };
     return Box;
 }());
@@ -35,52 +35,39 @@ var Boxer = /** @class */ (function () {
         this._imgW = 0;
         this._imgH = 0;
         this._needRepaint = false;
-        this._boxes = new Array();
-        /*     public getMouse(e:MouseEvent) {
-                var element = this._canvas, offsetX = 0, offsetY = 0, mx, my;
-                
-                // Compute the total offset
-                if (element.offsetParent !== undefined) {
-                  do {
-                    offsetX += element.offsetLeft;
-                    offsetY += element.offsetTop;
-                  } while ((element = element.offsetParent));
-                }
-              
-                // Add padding and border style widths to offset
-                // Also add the <html> offsets in case there's a position:fixed bar
-                offsetX += this._canvas.stylePaddingLeft + _can.styleBorderLeft + this.htmlLeft;
-                offsetY += this.stylePaddingTop + this.styleBorderTop + this.htmlTop;
-              
-                mx = e.pageX - offsetX;
-                my = e.pageY - offsetY;
-                
-                // We return a simple javascript object (a hash) with x and y defined
-                return {x: mx, y: my};
-              } */
+        this._dragging = false;
+        this._dragoffx = 0;
+        this._dragoffy = 0;
         this.Render = function () {
-            if (_this._needRepaint) {
-                //console.log('repaint');
-                _this.ClearContext();
-                if (_this._imageLoading && _this._context !== null) {
-                    _this._context.fillStyle = "rgb(197, 197, 197)";
-                    _this._context.strokeStyle = 'rgb(197, 197, 197)';
-                    _this._context.lineWidth = 1;
-                    var centerX = _this._canvasW / 2;
-                    var centerY = _this._canvasH / 2;
-                    _this._context.fillRect(centerX - 100, centerY - 5, _this._imageLoadingProgress * 2, 10);
-                    _this._context.strokeRect(centerX - 100, centerY - 5, 200, 10);
-                }
-                if (_this._drawImage && _this._image !== undefined) {
-                    _this.DrawBackground();
-                    _this.DrawImage(_this._image);
-                }
-                //console.log(this._boxes);
-                if (_this._boxes.length > 0) {
-                    _this.DrawBoxes();
-                }
-                _this._needRepaint = false;
+            if (_this._context === null)
+                return;
+            if (!_this._needRepaint) {
+                requestAnimationFrame(_this.Render);
+                return;
             }
+            _this.ClearContext();
+            if (_this._imageLoading && _this._context !== null) {
+                _this._context.fillStyle = "rgb(197, 197, 197)";
+                _this._context.strokeStyle = 'rgb(197, 197, 197)';
+                _this._context.lineWidth = 1;
+                var centerX = _this._canvasW / 2;
+                var centerY = _this._canvasH / 2;
+                _this._context.fillRect(centerX - 100, centerY - 5, _this._imageLoadingProgress * 2, 10);
+                _this._context.strokeRect(centerX - 100, centerY - 5, 200, 10);
+            }
+            if (_this._drawImage && _this._image !== undefined) {
+                _this.DrawBackground();
+                _this.DrawImage(_this._image);
+            }
+            if (_this._boxes.length > 0) {
+                _this.DrawBoxes();
+            }
+            if (_this._selectedBox !== undefined) {
+                _this._context.strokeStyle = '#CC0000';
+                _this._context.lineWidth = 2;
+                _this._context.strokeRect(_this._selectedBox.x, _this._selectedBox.y, _this._selectedBox.w, _this._selectedBox.h);
+            }
+            _this._needRepaint = false;
             requestAnimationFrame(_this.Render);
         };
         this.HandleResize = function () {
@@ -136,47 +123,70 @@ var Boxer = /** @class */ (function () {
         if (!this._canvas.hasAttribute('tabindex')) {
             this._canvas.setAttribute('tabindex', '1');
         }
-        this._needRepaint = true;
+        //this._needRepaint = true;
     };
     Boxer.prototype.AttachEventHandlers = function () {
         var _this = this;
         this._canvas.addEventListener('mousedown', function (event) {
-            //console.log('mousedown', event);
-        }, true);
-        this._canvas.addEventListener('dblclick', function (event) {
-            //console.log('dblclick', event);
-            var pos = _this.getMousePos(event);
-            _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
-        }, true);
-        this._canvas.addEventListener('mousemove', function (event) {
-            //console.log('mousemove', event);
-        }, true);
-        this._canvas.addEventListener('mouseup', function (event) {
-            //console.log('mouseup', event);
-        }, true);
-        this._canvas.addEventListener('mouseleave', function (event) {
-            //console.log('mouseleave', event);
-        }, true);
-        this._canvas.addEventListener('mousewheel', function (event) {
-            //console.log(event);
-            event.preventDefault();
-            return false;
-        }, true);
-        this._canvas.addEventListener('selectstart', function (event) {
-            //event.preventDefault();
-            return false;
-        }, false);
-        if (this._options.responsive) {
-            window.addEventListener("resize", this.HandleResize);
-            this.HandleResize();
-        }
-    };
-    Boxer.prototype.getMousePos = function (event) {
-        var rect = this._canvas.getBoundingClientRect();
-        return {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
-        };
+            var pos = _this.GetMousePosition(event);
+            for (var _i = 0, _a = _this._boxes; _i < _a.length; _i++) {
+                var box = _a[_i];
+                if (box.Contains(pos.x, pos.y)) {
+                    _this._selectedBox = box;
+                    _this._dragoffx = pos.x - _this._selectedBox.x;
+                    _this._dragoffy = pos.y - _this._selectedBox.y;
+                    _this._dragging = true;
+                    _this._needRepaint = true;
+                    return;
+                }
+            }
+            _this._canvas.addEventListener('dblclick', function (event) {
+                //console.log('dblclick', event);
+                var pos = _this.getMousePos(event);
+                _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
+            }, true);
+            _this._canvas.addEventListener('mousemove', function (event) {
+                if (_this._dragging && _this._selectedBox !== undefined) {
+                    var position = _this.GetMousePosition(event);
+                    // We don't want to drag the object by its top-left corner, we want to drag it
+                    // from where we clicked. Thats why we saved the offset and use it here
+                    _this._selectedBox.x = position.x - _this._dragoffx;
+                    _this._selectedBox.y = position.y - _this._dragoffy;
+                    _this._needRepaint = true;
+                }
+            }, true);
+            _this._canvas.addEventListener('mouseup', function (event) {
+                _this._dragging = false;
+            }, true);
+            _this._canvas.addEventListener('mouseleave', function (event) {
+                _this._dragging = false;
+                //this._selectedBox=undefined;
+                _this._needRepaint = true;
+            }, true);
+            _this._canvas.addEventListener('mousewheel', function (event) {
+                //console.log(event);
+                event.preventDefault();
+                return false;
+            }, true);
+            _this._canvas.addEventListener('dblclick', function (event) {
+                var pos = _this.GetMousePosition(event);
+                _this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
+            }, true);
+            _this._canvas.addEventListener('selectstart', function (event) {
+                //event.preventDefault();
+                return false;
+            }, false);
+            if (_this._options.responsive) {
+                window.addEventListener("resize", _this.HandleResize);
+                _this.HandleResize();
+            }
+        }, getMousePos(event, MouseEvent), Point, {
+            var: rect = this._canvas.getBoundingClientRect(),
+            return: {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            }
+        }, private, _boxes, Array < Box > , new Array());
     };
     Boxer.prototype.AddBox = function (box) {
         this._boxes.push(box);
@@ -259,7 +269,7 @@ var Boxer = /** @class */ (function () {
                 var blob = new Blob([xmlHttpRequest.response], { type: mimeType });
                 if (_this._image !== undefined) {
                     _this._image.src = window.URL.createObjectURL(blob);
-                    setInterval(function () {
+                    setTimeout(function () {
                         _this._drawImage = true;
                         _this._imageLoading = false;
                         _this._needRepaint = true;
@@ -288,7 +298,7 @@ var Boxer = /** @class */ (function () {
             console.log(e);
         };
         xmlHttpRequest.send();
-        this._imageLoading = true;
+        //this._imageLoading = true;
         this._imageLoadingProgress = 0;
         /*
                 this._image = new Image();

@@ -14,27 +14,46 @@ interface IBoxer {
 }
 
 class Box {
+<<<<<<< HEAD
     private _x: number;
     private _y: number;
     private _w: number;
     private _h: number;
     private _fill: string;
 
+=======
+    public x: number;
+    public y: number;
+    public w: number;
+    public h: number;
+
+    public _fill: string;
+>>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
     constructor(x: number, y: number, w: number, h: number, fill: string) {
-        this._x = x;
-        this._y = y;
-        this._w = w;
-        this._h = h;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
 
         this._fill = fill;
     }
 
+<<<<<<< HEAD
     Paint(ctx: CanvasRenderingContext2D): void {
+=======
+    Contains(x: number, y: number): boolean {
+        return (this.x <= x) && (this.x + this.w >= x) && (this.y <= y) && (this.y + this.h >= y);
+    }
+
+    Paint(ctx: CanvasRenderingContext2D | null): void {
+>>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         if (ctx === null) return;
 
         ctx.fillStyle = this._fill;
-        ctx.fillRect(this._x, this._y, this._w, this._h);
+        ctx.fillRect(this.x, this.y, this.w, this.h);
     }
+
+
 }
 
 class Boxer implements IBoxer {
@@ -87,36 +106,73 @@ class Boxer implements IBoxer {
         if (!this._canvas.hasAttribute('tabindex')) {
             this._canvas.setAttribute('tabindex', '1');
         }
-        this._needRepaint = true;
+        //this._needRepaint = true;
     }
 
-    AttachEventHandlers(): any {
-        this._canvas.addEventListener('mousedown', (event) => {
-            //console.log('mousedown', event);
-        }, true);
+    private _selectedBox: Box | undefined;
+    private _dragging:boolean = false;
 
+    private _dragoffx:number=0;
+    private _dragoffy:number=0;
+
+    AttachEventHandlers(): void {
+        this._canvas.addEventListener('mousedown', (event) => {
+            var pos = this.GetMousePosition(event);
+            for (let box of this._boxes) {
+                if (box.Contains(pos.x, pos.y)) {
+                    this._selectedBox = box;
+                    this._dragoffx=pos.x-this._selectedBox.x;
+                    this._dragoffy=pos.y-this._selectedBox.y;
+                    this._dragging = true;
+                    this._needRepaint = true;
+                    return;
+                }
+            }
+
+<<<<<<< HEAD
         this._canvas.addEventListener('dblclick', (event) => {
             //console.log('dblclick', event);
             var pos = this.getMousePos(event);
             this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
+=======
+            //remove selection
+            if (this._selectedBox !== undefined) {
+                this._selectedBox = undefined;
+                this._needRepaint = true;
+            }
+>>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         }, true);
 
         this._canvas.addEventListener('mousemove', (event) => {
-            //console.log('mousemove', event);
+            if (this._dragging && this._selectedBox !==undefined){
+                var position =this.GetMousePosition(event);
+                // We don't want to drag the object by its top-left corner, we want to drag it
+                // from where we clicked. Thats why we saved the offset and use it here
+                this._selectedBox.x = position.x - this._dragoffx;
+                this._selectedBox.y = position.y - this._dragoffy;   
+                this._needRepaint = true;
+              }
         }, true);
 
         this._canvas.addEventListener('mouseup', (event) => {
-            //console.log('mouseup', event);
+            this._dragging = false;
         }, true);
 
         this._canvas.addEventListener('mouseleave', (event) => {
-            //console.log('mouseleave', event);
+            this._dragging = false;
+            //this._selectedBox=undefined;
+            this._needRepaint = true;
         }, true);
 
         this._canvas.addEventListener('mousewheel', (event) => {
             //console.log(event);
             event.preventDefault();
             return false;
+        }, true);
+
+        this._canvas.addEventListener('dblclick', (event) => {
+            var pos = this.GetMousePosition(event);
+            this.AddBox(new Box(pos.x - 10, pos.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
         }, true);
 
         this._canvas.addEventListener('selectstart', (event) => {
@@ -130,12 +186,21 @@ class Boxer implements IBoxer {
         }
     }
 
+<<<<<<< HEAD
     getMousePos(event: MouseEvent): Point {
+=======
+    GetMousePosition(evt: MouseEvent): Point {
+>>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         var rect = this._canvas.getBoundingClientRect();
 
         return {
+<<<<<<< HEAD
             x: event.clientX - rect.left,
             y: event.clientY - rect.top
+=======
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+>>>>>>> 5cf73f884603ac9b0465bdd7c71d0c2c855a7c20
         };
     }
 
@@ -146,60 +211,46 @@ class Boxer implements IBoxer {
         this._needRepaint = true;
     }
 
-    /*     public getMouse(e:MouseEvent) {
-            var element = this._canvas, offsetX = 0, offsetY = 0, mx, my;
-            
-            // Compute the total offset
-            if (element.offsetParent !== undefined) {
-              do {
-                offsetX += element.offsetLeft;
-                offsetY += element.offsetTop;
-              } while ((element = element.offsetParent));
-            }
-          
-            // Add padding and border style widths to offset
-            // Also add the <html> offsets in case there's a position:fixed bar
-            offsetX += this._canvas.stylePaddingLeft + _can.styleBorderLeft + this.htmlLeft;
-            offsetY += this.stylePaddingTop + this.styleBorderTop + this.htmlTop;
-          
-            mx = e.pageX - offsetX;
-            my = e.pageY - offsetY;
-            
-            // We return a simple javascript object (a hash) with x and y defined
-            return {x: mx, y: my};
-          } */
-
     public Render = () => {
+        if (this._context === null) return;
 
-        if (this._needRepaint) {
-            //console.log('repaint');
-            this.ClearContext();
-
-
-            if (this._imageLoading && this._context !== null) {
-                this._context.fillStyle = "rgb(197, 197, 197)";
-                this._context.strokeStyle = 'rgb(197, 197, 197)';
-                this._context.lineWidth = 1;
-
-                var centerX: number = this._canvasW / 2;
-                var centerY: number = this._canvasH / 2;
-
-                this._context.fillRect(centerX - 100, centerY - 5, this._imageLoadingProgress * 2, 10);
-                this._context.strokeRect(centerX - 100, centerY - 5, 200, 10);
-            }
-
-            if (this._drawImage && this._image !== undefined) {
-                this.DrawBackground();
-                this.DrawImage(this._image);
-            }
-
-            //console.log(this._boxes);
-            if (this._boxes.length > 0) {
-                this.DrawBoxes();
-            }
-
-            this._needRepaint = false;
+        if (!this._needRepaint) {
+            requestAnimationFrame(this.Render);
+            return;
         }
+
+        this.ClearContext();
+
+
+        if (this._imageLoading && this._context !== null) {
+            this._context.fillStyle = "rgb(197, 197, 197)";
+            this._context.strokeStyle = 'rgb(197, 197, 197)';
+            this._context.lineWidth = 1;
+
+            var centerX: number = this._canvasW / 2;
+            var centerY: number = this._canvasH / 2;
+
+            this._context.fillRect(centerX - 100, centerY - 5, this._imageLoadingProgress * 2, 10);
+            this._context.strokeRect(centerX - 100, centerY - 5, 200, 10);
+        }
+
+        if (this._drawImage && this._image !== undefined) {
+            this.DrawBackground();
+            this.DrawImage(this._image);
+        }
+
+        if (this._boxes.length > 0) {
+            this.DrawBoxes();
+        }
+
+        if (this._selectedBox !== undefined) {
+            this._context.strokeStyle = '#CC0000';
+            this._context.lineWidth = 2;
+            this._context.strokeRect(this._selectedBox.x, this._selectedBox.y, this._selectedBox.w, this._selectedBox.h);
+
+        }
+
+        this._needRepaint = false;
         requestAnimationFrame(this.Render);
     }
 
@@ -334,7 +385,7 @@ class Boxer implements IBoxer {
 
                 if (this._image !== undefined) {
                     this._image.src = window.URL.createObjectURL(blob);
-                    setInterval(() => {
+                    setTimeout(() => {
                         this._drawImage = true;
                         this._imageLoading = false;
                         this._needRepaint = true;
@@ -368,7 +419,7 @@ class Boxer implements IBoxer {
         }
 
         xmlHttpRequest.send();
-        this._imageLoading = true;
+        //this._imageLoading = true;
         this._imageLoadingProgress = 0;
 
 
