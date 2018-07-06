@@ -64,21 +64,127 @@ var EventEmitter = /** @class */ (function () {
     return EventEmitter;
 }());
 var Box = /** @class */ (function () {
-    function Box(x, y, w, h, fill) {
+    function Box(x, y, w, h, fill, adorner) {
+        if (adorner === void 0) { adorner = false; }
+        this._adornerWidth = 6;
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
-        this._fill = fill;
+        this.fill = fill;
+        if (adorner)
+            return;
+        this._adorners = new Array();
+        // 0  1  2
+        // 7     3
+        // 6  5  4
+        /*         ctx.fillRect(this.x - width / 2, this.y - width / 2, width, width);
+                //1
+                ctx.fillRect(this.x + this.w / 2 - width / 2, this.y - width / 2, width, width);
+                //2
+                ctx.fillRect(this.x + this.w - width / 2, this.y - width / 2, width, width);
+                //3
+                ctx.fillRect(this.x + this.w - width / 2, this.y + this.h / 2 - width / 2, width, width);
+                //4
+                ctx.fillRect(this.x + this.w - width / 2, this.y + this.h - width / 2, width, width);
+                //5
+                ctx.fillRect(this.x + this.w / 2 - width / 2, this.y + this.h - width / 2, width, width);
+                //6
+                ctx.fillRect(this.x - width / 2, this.y + this.h - width / 2, width, width);
+                //7
+                ctx.fillRect(this.x - width / 2, this.y + this.h / 2 - width / 2, width, width); */
+        this._adorners.push(new Box(this.x - this._adornerWidth / 2, this.y - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x + w / 2 - this._adornerWidth / 2, this.y - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x + w - this._adornerWidth / 2, this.y - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x + w - this._adornerWidth / 2, this.y + h / 2 - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x + w - this._adornerWidth / 2, this.y + h - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x + w / 2 - this._adornerWidth / 2, this.y + h - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x - this._adornerWidth / 2, this.y + h - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
+        this._adorners.push(new Box(this.x - this._adornerWidth / 2, this.y + h / 2 - this._adornerWidth / 2, this._adornerWidth, this._adornerWidth, '#CC0000', true));
     }
     Box.prototype.Contains = function (x, y) {
         return (this.x <= x) && (this.x + this.w >= x) && (this.y <= y) && (this.y + this.h >= y);
     };
-    Box.prototype.Paint = function (ctx) {
-        if (ctx === null)
-            return;
-        ctx.fillStyle = this._fill;
+    Box.prototype.GetResizeDirection = function (x, y) {
+        if (this._adorners === undefined)
+            return -1;
+        for (var i = 0, len = this._adorners.length; i < len; i++) {
+            if (this._adorners[i].Contains(x, y)) {
+                return i;
+            }
+        }
+        //default
+        return -1;
+    };
+    Box.prototype.Draw = function (ctx) {
+        ctx.fillStyle = this.fill;
         ctx.fillRect(this.x, this.y, this.w, this.h);
+    };
+    Box.prototype.UpdateAdornersPosition = function () {
+        if (this._adorners === undefined)
+            return;
+        // 0  1  2
+        // 7     3
+        // 6  5  4
+        //0
+        this._adorners[0].x = this.x - this._adornerWidth / 2;
+        this._adorners[0].y = this.y - this._adornerWidth / 2;
+        //1
+        this._adorners[1].x = this.x + this.w / 2 - this._adornerWidth / 2;
+        this._adorners[1].y = this.y - this._adornerWidth / 2;
+        //2
+        this._adorners[2].x = this.x + this.w - this._adornerWidth / 2;
+        this._adorners[2].y = this.y - this._adornerWidth / 2;
+        //3
+        this._adorners[3].x = this.x + this.w - this._adornerWidth / 2;
+        this._adorners[3].y = this.y + this.h / 2 - this._adornerWidth / 2;
+        //4
+        this._adorners[4].x = this.x + this.w - this._adornerWidth / 2;
+        this._adorners[4].y = this.y + this.h - this._adornerWidth / 2;
+        //5
+        this._adorners[5].x = this.x + this.w / 2 - this._adornerWidth / 2;
+        this._adorners[5].y = this.y + this.h - this._adornerWidth / 2;
+        //6
+        this._adorners[6].x = this.x - this._adornerWidth / 2;
+        this._adorners[6].y = this.y + this.h - this._adornerWidth / 2;
+        //7
+        this._adorners[7].x = this.x - this._adornerWidth / 2;
+        this._adorners[7].y = this.y + this.h / 2 - this._adornerWidth / 2;
+    };
+    Box.prototype.DrawAdorners = function (ctx) {
+        ctx.strokeStyle = '#CC0000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = '#CC0000';
+        if (this._adorners === undefined)
+            return;
+        this.UpdateAdornersPosition();
+        for (var _i = 0, _a = this._adorners; _i < _a.length; _i++) {
+            var adorner = _a[_i];
+            adorner.Draw(ctx);
+        }
+        // 0  1  2
+        // 7     3
+        // 6  5  4
+        /*         //0
+                var width = 6;
+                ctx.fillRect(this.x - width / 2, this.y - width / 2, width, width);
+                //1
+                ctx.fillRect(this.x + this.w / 2 - width / 2, this.y - width / 2, width, width);
+                //2
+                ctx.fillRect(this.x + this.w - width / 2, this.y - width / 2, width, width);
+                //3
+                ctx.fillRect(this.x + this.w - width / 2, this.y + this.h / 2 - width / 2, width, width);
+                //4
+                ctx.fillRect(this.x + this.w - width / 2, this.y + this.h - width / 2, width, width);
+                //5
+                ctx.fillRect(this.x + this.w / 2 - width / 2, this.y + this.h - width / 2, width, width);
+                //6
+                ctx.fillRect(this.x - width / 2, this.y + this.h - width / 2, width, width);
+                //7
+                ctx.fillRect(this.x - width / 2, this.y + this.h / 2 - width / 2, width, width);
+        
+         */
     };
     return Box;
 }());
@@ -98,6 +204,10 @@ var Boxer = /** @class */ (function (_super) {
         _this._dragging = false;
         _this._dragoffx = 0;
         _this._dragoffy = 0;
+        _this._resizing = false;
+        _this._resizeoffx = 0;
+        _this._resizeoffy = 0;
+        _this._resizeDirection = -1;
         _this._boxes = new Array();
         _this.Render = function () {
             if (_this._context === null)
@@ -124,9 +234,7 @@ var Boxer = /** @class */ (function (_super) {
                 _this.DrawBoxes();
             }
             if (_this._selectedBox !== undefined) {
-                _this._context.strokeStyle = '#CC0000';
-                _this._context.lineWidth = 2;
-                _this._context.strokeRect(_this._selectedBox.x, _this._selectedBox.y, _this._selectedBox.w, _this._selectedBox.h);
+                _this._selectedBox.DrawAdorners(_this._context);
             }
             _this._needRepaint = false;
             requestAnimationFrame(_this.Render);
@@ -193,6 +301,15 @@ var Boxer = /** @class */ (function (_super) {
             var pos = _this.GetMousePosition(event);
             for (var _i = 0, _a = _this._boxes; _i < _a.length; _i++) {
                 var box = _a[_i];
+                _this._resizeDirection = box.GetResizeDirection(pos.x, pos.y);
+                //console.log(this._resizeDirection);
+                if (_this._resizeDirection !== -1) {
+                    _this._selectedBox = box;
+                    _this._resizeoffx = pos.x - _this._selectedBox.x;
+                    _this._resizeoffy = pos.y - _this._selectedBox.y;
+                    _this._resizing = true;
+                    return;
+                }
                 if (box.Contains(pos.x, pos.y)) {
                     _this._selectedBox = box;
                     _this._dragoffx = pos.x - _this._selectedBox.x;
@@ -209,6 +326,8 @@ var Boxer = /** @class */ (function (_super) {
             }
         }, true);
         this._canvas.addEventListener('mousemove', function (event) {
+            //console.log('dragging', this._dragging);
+            //console.log('resizing', this._resizing);
             if (_this._dragging && _this._selectedBox !== undefined) {
                 var position = _this.GetMousePosition(event);
                 // We don't want to drag the object by its top-left corner, we want to drag it
@@ -216,13 +335,107 @@ var Boxer = /** @class */ (function (_super) {
                 _this._selectedBox.x = position.x - _this._dragoffx;
                 _this._selectedBox.y = position.y - _this._dragoffy;
                 _this._needRepaint = true;
+                return;
+            }
+            var pos = _this.GetMousePosition(event);
+            if (_this._resizeDirection == -1) {
+                for (var _i = 0, _a = _this._boxes; _i < _a.length; _i++) {
+                    var box = _a[_i];
+                    // 0  1  2
+                    // 7     3
+                    // 6  5  4
+                    var rd = box.GetResizeDirection(pos.x, pos.y);
+                    switch (rd) {
+                        case 0:
+                            _this._canvas.style.cursor = 'nw-resize';
+                            break;
+                        case 1:
+                            _this._canvas.style.cursor = 'n-resize';
+                            break;
+                        case 2:
+                            _this._canvas.style.cursor = 'ne-resize';
+                            break;
+                        case 3:
+                            _this._canvas.style.cursor = 'w-resize';
+                            break;
+                        case 4:
+                            _this._canvas.style.cursor = 'se-resize'; //'e-resize';
+                            break;
+                        case 5:
+                            _this._canvas.style.cursor = 's-resize';
+                            break;
+                        case 6:
+                            _this._canvas.style.cursor = 'sw-resize';
+                            break;
+                        case 7:
+                            _this._canvas.style.cursor = 'e-resize';
+                            break;
+                        default:
+                            _this._canvas.style.cursor = 'auto';
+                            break;
+                    }
+                }
+            }
+            if (_this._resizing && _this._selectedBox !== undefined) {
+                var oldx = _this._selectedBox.x;
+                var oldy = _this._selectedBox.y;
+                switch (_this._resizeDirection) {
+                    case 0:
+                        _this._selectedBox.x = pos.x;
+                        _this._selectedBox.y = pos.y;
+                        _this._selectedBox.w += oldx - pos.x;
+                        _this._selectedBox.h += oldy - pos.y;
+                        _this._needRepaint = true;
+                        break;
+                    case 1:
+                        _this._selectedBox.y = pos.y;
+                        _this._selectedBox.h += oldy - pos.y;
+                        _this._needRepaint = true;
+                        break;
+                    case 2:
+                        _this._selectedBox.y = pos.y;
+                        _this._selectedBox.w = pos.x - oldx;
+                        _this._selectedBox.h += oldy - pos.y;
+                        _this._needRepaint = true;
+                        break;
+                    case 3:
+                        _this._selectedBox.w = pos.x - oldx;
+                        _this._needRepaint = true;
+                        break;
+                    case 4:
+                        _this._selectedBox.w = pos.x - oldx;
+                        _this._selectedBox.h = pos.y - oldy;
+                        _this._needRepaint = true;
+                        break;
+                    case 5:
+                        _this._selectedBox.h = pos.y - oldy;
+                        _this._needRepaint = true;
+                        break;
+                    case 6:
+                        _this._selectedBox.x = pos.x;
+                        _this._selectedBox.w += oldx - pos.x;
+                        _this._selectedBox.h = pos.y - oldy;
+                        _this._needRepaint = true;
+                        break;
+                    case 7:
+                        _this._selectedBox.x = pos.x;
+                        _this._selectedBox.w += oldx - pos.x;
+                        _this._needRepaint = true;
+                        break;
+                    default:
+                        _this._canvas.style.cursor = 'auto';
+                        break;
+                }
             }
         }, true);
         this._canvas.addEventListener('mouseup', function (event) {
             _this._dragging = false;
+            _this._resizing = false;
+            _this._resizeDirection = -1;
         }, true);
         this._canvas.addEventListener('mouseleave', function (event) {
             _this._dragging = false;
+            _this._resizing = false;
             //this._selectedBox=undefined;
             _this._needRepaint = true;
         }, true);
@@ -275,7 +488,7 @@ var Boxer = /** @class */ (function (_super) {
         var _this = this;
         if (this._context !== null) {
             this._boxes.forEach(function (box) {
-                box.Paint(_this._context);
+                box.Draw(_this._context);
             });
         }
     };
@@ -360,17 +573,17 @@ var Boxer = /** @class */ (function (_super) {
         xmlHttpRequest.onprogress = function (e) {
             if (e.lengthComputable) {
                 var completedPercentage = (e.loaded / e.total) * 100;
-                console.log(completedPercentage + ' %');
+                //console.log(completedPercentage + ' %');
                 _this._imageLoadingProgress = completedPercentage;
                 _this._needRepaint = true;
             }
         };
         xmlHttpRequest.onloadstart = function () {
-            console.log(0 + ' %');
+            //console.log(0 + ' %');
             _this._needRepaint = true;
         };
         xmlHttpRequest.onloadend = function () {
-            console.log('sto');
+            //console.log('sto');
             _this._imageLoading = false;
             _this._needRepaint = true;
             _this.emit('imageLoaded');
@@ -394,7 +607,7 @@ var Boxer = /** @class */ (function (_super) {
                 */
     };
     Boxer.prototype.LoadBoxes = function (boxes) {
-        console.log(boxes);
+        //console.log(boxes);
         for (var _i = 0, boxes_1 = boxes; _i < boxes_1.length; _i++) {
             var box = boxes_1[_i];
             this.AddBox(new Box(box.x, box.y, box.w, box.h, 'rgba(0,255,0,.6)'));
