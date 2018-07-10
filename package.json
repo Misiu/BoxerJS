@@ -23,6 +23,11 @@
   },
   "homepage": "https://github.com/Misiu/boxer.js#readme",
   "devDependencies": {
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "awesome-typescript-loader": "^4.0.1",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "webpack": "^4.2.0",
+    "webpack-stream": "^4.0.3"
   }
 }

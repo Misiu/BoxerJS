@@ -1,0 +1,37 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "max-line-length": {
+            "options": [250]
+        },
+        "quotemark": [true,"single"],
+        "max-classes-per-file": false,
+        "variable-name": [true, "check-format", "allow-leading-underscore"],
+        "comment-format": [true, "check-space"],
+        "trailing-comma": [
+            true,
+            {
+              "multiline": {
+                "objects": "never"
+              },
+              "esSpecCompliant": true
+            }
+          ],
+        "new-parens": true,
+        "no-arg": true,
+        "no-bitwise": true,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": false,
+        "no-console": {
+            "severity": "warning",
+            "options": [
+                "debug",
+                "info",
+                "log",
+                "time",
+                "timeEnd",
+                "trace"
+            ]
+        }
+    }
+}

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width">
     <title>boxer.js</title>
     <meta name="description" content="boxer.js demo">
-
+    <!-- <script src="./../dist/event_emitter.js"></script> -->
     <script src="./../dist/boxer.js"></script>
     <style>
         #second {
@@ -25,34 +25,63 @@
     <canvas id="boxer1" width="400" height="600" style="border: 1px solid rgb(0, 0, 0); cursor: auto;">
         No support for HTML5 Canvas.
     </canvas>
+    <button id="first">Get boxes</button>
     <div id="second">
         <canvas id="boxer2" style="border: 1px solid rgb(0, 0, 0); cursor: auto;">
             No support for HTML5 Canvas.
         </canvas>
     </div>
     <script>
-        var canvas1 = document.getElementById('boxer1');
-        var boxer1 = new Boxer(canvas1, {
-            responsive: false,
-            readonly: false,
-            debug: true
+
+        Storage.prototype.setObject = function (key, value) {
+            this.setItem(key, JSON.stringify(value));
+        }
+
+        Storage.prototype.getObject = function (key) {
+            var value = this.getItem(key);
+            return value && JSON.parse(value);
+        }
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            var canvas1 = document.getElementById('boxer1');
+            var boxer1 = new Boxer(canvas1, {
+                responsive: false,
+                readonly: false,
+                debug: true
+            });
+
+            boxer1.on('imageLoaded', function (e, ) {
+
+                var boxes = localStorage.getObject('boxes');
+                console.log(boxes);
+                if (boxes === null || boxes === undefined) {
+                    boxes = [{ x: 20, y: 20, w: 10, h: 10 }, { x: 30, y: 50, w: 20, h: 100 }];
+                }
+                boxer1.LoadBoxes(boxes);
+            });
+
+            boxer1.LoadImage('https://image.ibb.co/ncW9H8/test.jpg');
+
+            var canvas2 = document.getElementById('boxer2');
+            var boxer2 = new Boxer(canvas2, {
+                responsive: true,
+                readonly: false,
+                debug: true
+            });
+
+            boxer2.LoadImage('https://s22.postimg.cc/k6qk80jk1/Invoice-00984-_Clean-page-001.jpg');
+
+            var button = document.getElementById('first');
+
+            // When list is clicked call function delegator()
+            button.addEventListener('click', () => {
+                var boxes = boxer1.GetBoxes();
+                console.log(boxes);
+
+                localStorage.setObject('boxes', boxes);
+            }, false);
         });
 
-        boxer1.on('imageLoaded', function (e, ) {
-            boxes = [{x: 20,y: 20, w: 10, h: 10 }, {x:30,y:50,w:20,h:100}];
-            boxer1.LoadBoxes(boxes);
-        });
-
-        boxer1.LoadImage('https://image.ibb.co/ncW9H8/test.jpg');
-
-        var canvas2 = document.getElementById('boxer2');
-        var boxer2 = new Boxer(canvas2, {
-            responsive: true,
-            readonly: false,
-            debug: true
-        });
-
-        boxer2.LoadImage('https://s22.postimg.cc/k6qk80jk1/Invoice-00984-_Clean-page-001.jpg');
     </script>
 </body>
 
