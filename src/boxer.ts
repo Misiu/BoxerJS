@@ -64,6 +64,8 @@ interface IBoxerOptions {
 
 interface IBoxer {
     LoadImage(url: string): void;
+    LoadBoxes(boxes: Box[]): void;
+    GetBoxes(): Box[];
 }
 
 class Box {
@@ -729,6 +731,5 @@ class Boxer extends EventEmitter implements IBoxer {
             this._context.lineWidth = 1;
             this._context.strokeRect(this._imgX, this._imgY, this._imgW, this._imgH);
         }
-
     }
 }
